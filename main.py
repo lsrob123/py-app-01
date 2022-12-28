@@ -1,5 +1,3 @@
-# from fastapi import FastAPI, Query
-# from fastapi.responses import HTMLResponse, ORJSONResponse
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse, ORJSONResponse
 from datetime import datetime
@@ -19,12 +17,26 @@ async def index():
 
 
 @app.get('/lines/')
-async def lines(keywords: str = ""):
+async def lines(keywords: str = "", output_json: str = "yes"):
     now = datetime.now()
-    lines = get_lines_from_file(keywords)
-    response = f"This the lines page - {now} {os.linesep} {lines}"
-    return ORJSONResponse({"response": response})
+
+    if output_json == "yes":
+        lines = get_lines_from_file(keywords)
+        return ORJSONResponse({"time": now, "response": lines})
+    else:
+        lines = get_lines_from_file(keywords, "<p />")
+        return HTMLResponse(f"""
+            <div>{now}</div>
+            <div>{lines}</div>
+        """)
 
 
-def get_lines_from_file(keywords: str):
-    return keywords
+def get_lines_from_file(keywords: str, line_break: str = ""):
+    data_file = open("./data.txt", "r")
+    lines = ""
+    for line in data_file:
+        lines += line
+        lines += line_break
+    data_file.close()
+
+    return lines
